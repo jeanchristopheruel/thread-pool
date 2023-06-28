@@ -25,6 +25,7 @@
 #include <type_traits>        // std::common_type_t, std::conditional_t, std::decay_t, std::invoke_result_t, std::is_void_v
 #include <utility>            // std::forward, std::move, std::swap
 #include <vector>             // std::vector
+#include <pthread.h>
 
 namespace BS
 {
@@ -233,6 +234,8 @@ private:
 // ============================================================================================= //
 //                                    Begin class thread_pool                                    //
 
+enum class SchedulingPolicy{ROUNDROBIN=0, FIFO};
+
 /**
  * @brief A fast, lightweight, and easy-to-use C++17 thread pool class.
  */
@@ -248,7 +251,9 @@ public:
      *
      * @param thread_count_ The number of threads to use. The default value is the total number of hardware threads available, as reported by the implementation. This is usually determined by the number of cores in the CPU. If a core is hyperthreaded, it will count as two threads.
      */
-    thread_pool(const concurrency_t thread_count_ = 0) : thread_count(determine_thread_count(thread_count_)), threads(std::make_unique<std::thread[]>(determine_thread_count(thread_count_)))
+    thread_pool(const concurrency_t thread_count_ = 0, const SchedulingPolicy policy = SchedulingPolicy::ROUNDROBIN, const int priority = 0) :
+          thread_count(determine_thread_count(thread_count_)), threads(std::make_unique<std::thread[]>(determine_thread_count(thread_count_))),
+          scheduler_policy{policy}, scheduler_priority{priority}
     {
         create_threads();
     }
@@ -307,6 +312,34 @@ public:
     [[nodiscard]] concurrency_t get_thread_count() const
     {
         return thread_count;
+    }
+
+    /**
+     * @brief Get the threads scheduling priority.
+     *
+     * @return threads scheduling priority.
+     */
+    [[nodiscard]] int get_scheduling_priority() const
+    {
+        sched_param sch;
+        int policy;
+        const std::scoped_lock tasks_lock(tasks_mutex);
+        pthread_getschedparam(threads[i].native_handle(), &policy, &sch);
+        return policy;
+    }
+
+    /**
+     * @brief Get the threads scheduling policy.
+     *
+     * @return threads scheduling policy.
+     */
+    [[nodiscard]] SchedulingPolicy get_scheduling_policy() const
+    {
+        sched_param sch;
+        int policy;
+        const std::scoped_lock tasks_lock(tasks_mutex);
+        pthread_getschedparam(threads[i].native_handle(), &policy, &sch);
+        return sch.sched_priority == SCHED_FIFO ? SchedulingPolicy::FIFO : SchedulingPolicy::ROUNDROBIN;
     }
 
     /**
@@ -578,6 +611,9 @@ private:
         for (concurrency_t i = 0; i < thread_count; ++i)
         {
             threads[i] = std::thread(&thread_pool::worker, this);
+            sched_param sch{scheduler_priority};
+            pthread_setschedparam(threads[i].native_handle(),
+                                  scheduler_policy == SchedulingPolicy::FIFO ? SCHED_FIFO : SCHED_RR, &sch);
         }
     }
 
@@ -675,6 +711,16 @@ private:
      * @brief A mutex to synchronize access to the task queue by different threads.
      */
     mutable std::mutex tasks_mutex = {};
+
+    /**
+     * @brief The thread scheduling policy
+     */
+     SchedulingPolicy scheduler_policy = {};
+
+     /**
+     * @brief The thread scheduling priority
+      */
+     int scheduler_priority = {};
 
     /**
      * @brief The number of threads in the pool.

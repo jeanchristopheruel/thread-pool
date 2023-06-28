@@ -1252,6 +1252,25 @@ void check_vectors(P& pool)
         check_vector_of_size(pool, size_dist(mt), task_dist(mt));
 }
 
+// =====================================
+// Functions to verify scheduling priorities
+// =====================================
+
+void check_fifo_policy_scheduling(BS::thread_pool& pool)
+{
+    check(pool.get_scheduling_policy() == BS::SchedulingPolicy::FIFO);
+}
+
+void check_rr_policy_scheduling(BS::thread_pool& pool)
+{
+    check(pool.get_scheduling_policy() == BS::SchedulingPolicy::FIFO);
+}
+
+void check_priority_scheduling(BS::thread_pool& pool, int priority)
+{
+    check(pool.get_scheduling_priority() == priority);
+}
+
 // ==================
 // Main test function
 // ==================
@@ -1336,6 +1355,11 @@ void do_tests()
         BS::thread_pool temp_pool;
         check_deadlock([&temp_pool] { temp_pool.reset(); });
     }
+
+    check_fifo_policy_scheduling(BS::thread_pool{std::thread::hardware_concurrency(), BS::SchedulingPolicy::FIFO});
+    check_rr_policy_scheduling(BS::thread_pool{std::thread::hardware_concurrency(), BS::SchedulingPolicy::ROUNDROBIN});
+    check_priority_scheduling(BS::thread_pool{std::thread::hardware_concurrency(), BS::SchedulingPolicy::FIFO, 10}, 10);
+    check_priority_scheduling(BS::thread_pool{std::thread::hardware_concurrency(), BS::SchedulingPolicy::FIFO, 20}, 20);
 }
 
 // ==========================
