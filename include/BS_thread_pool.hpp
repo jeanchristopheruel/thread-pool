@@ -321,11 +321,7 @@ public:
      */
     [[nodiscard]] int get_scheduling_priority() const
     {
-        sched_param sch;
-        int policy;
-        const std::scoped_lock tasks_lock(tasks_mutex);
-        pthread_getschedparam(threads[i].native_handle(), &policy, &sch);
-        return policy;
+        return scheduler_priority;
     }
 
     /**
@@ -335,11 +331,7 @@ public:
      */
     [[nodiscard]] SchedulingPolicy get_scheduling_policy() const
     {
-        sched_param sch;
-        int policy;
-        const std::scoped_lock tasks_lock(tasks_mutex);
-        pthread_getschedparam(threads[i].native_handle(), &policy, &sch);
-        return sch.sched_priority == SCHED_FIFO ? SchedulingPolicy::FIFO : SchedulingPolicy::ROUNDROBIN;
+        return scheduler_policy;
     }
 
     /**
