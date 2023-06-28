@@ -14,7 +14,7 @@ Email: <baraksh@gmail.com>\
 Website: <https://baraksh.com/>\
 GitHub: <https://github.com/bshoshany>
 
-## Elmec Fork
+## Fork Addon
 This repository is a fork of [bshoshany/thread-pool](https://github.com/bshoshany/thread-pool). 
 It has been enhanced with the handling of scheduling priorities.
 
