@@ -705,16 +705,6 @@ private:
     mutable std::mutex tasks_mutex = {};
 
     /**
-     * @brief The thread scheduling policy
-     */
-     SchedulingPolicy scheduler_policy = {};
-
-     /**
-     * @brief The thread scheduling priority
-      */
-     int scheduler_priority = {};
-
-    /**
      * @brief The number of threads in the pool.
      */
     concurrency_t thread_count = 0;
@@ -723,6 +713,16 @@ private:
      * @brief A smart pointer to manage the memory allocated for the threads.
      */
     std::unique_ptr<std::thread[]> threads = nullptr;
+
+    /**
+     * @brief The thread scheduling policy
+     */
+     SchedulingPolicy scheduler_policy = {};
+
+    /**
+     * @brief The thread scheduling priority
+     */
+     int scheduler_priority = {};
 
     /**
      * @brief A flag indicating that wait_for_tasks() is active and expects to be notified whenever a task is done.
