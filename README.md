@@ -14,10 +14,6 @@ Email: <baraksh@gmail.com>\
 Website: <https://baraksh.com/>\
 GitHub: <https://github.com/bshoshany>
 
-## Fork Addon
-This repository is a fork of [bshoshany/thread-pool](https://github.com/bshoshany/thread-pool). 
-It has been enhanced with the handling of scheduling priorities.
-
 ## Index
 
 This is the complete documentation for v3.5.0 of the library, released on 2023-05-25.
